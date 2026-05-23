@@ -1,0 +1,17 @@
+{
+  "name": "mywebapp",
+  "version": "1.0.0",
+  "description": "Task Tracker — web service for tracking tasks",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "migrate": "node src/migrate.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.2.1",
+    "pg": "^8.21.0"
+  }
+}
