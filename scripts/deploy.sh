@@ -34,7 +34,7 @@ fi
 # student — твій робочий користувач
 if ! id "student" &>/dev/null; then
     useradd -m -s /bin/bash student
-    echo "student:12345678" | chpasswd
+    echo "student:12345678" | chpasswd 2>/dev/null || true
     usermod -aG sudo student
     echo "  Created user: student"
 fi
@@ -50,7 +50,8 @@ fi
 
 # operator — обмежений доступ
 if ! id "operator" &>/dev/null; then
-    useradd -m -s /bin/bash operator
+    groupadd -f operator
+    useradd -m -s /bin/bash -g operator operator
     echo "operator:12345678" | chpasswd
     chage -d 0 operator
     echo "  Created user: operator"
