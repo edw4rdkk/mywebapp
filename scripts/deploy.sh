@@ -21,7 +21,11 @@ DB_PASS="mywebapp_secret"
 
 echo "=== [1/8] Installing required packages ==="
 apt-get update -qq
-apt-get install -y -qq nginx postgresql nodejs npm curl > /dev/null
+# Install Node.js 20 from NodeSource
+if ! node -v 2>/dev/null | grep -q "v20"; then
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+fi
+apt-get install -y -qq nginx postgresql nodejs curl > /dev/null
 
 echo "=== [2/8] Creating system users ==="
 
