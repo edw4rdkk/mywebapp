@@ -1,0 +1,64 @@
+name: CD
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  ci:
+    name: CI Checks
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+    needs: ci
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Pull image on target
+        run: |
+          ssh jcm@${{ secrets.TARGET_HOST }} "echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.actor }} --password-stdin"
+          ssh jcm@${{ secrets.TARGET_HOST }} "docker pull ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+
+      - name: Deploy to target
+        run: |
+          ssh jcm@${{ secrets.TARGET_HOST }} "docker stop mywebapp || true && docker rm mywebapp || true"
+          ssh jcm@${{ secrets.TARGET_HOST }} "docker run -d --name mywebapp --network host -e CONFIG_PATH=/app/config.json -v /etc/mywebapp/config.json:/app/config.json:ro ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+
+      - name: Wait for service
+        run: sleep 5
+
+  verify:
+    name: Verify Deployment
+    runs-on: self-hosted
+    needs: deploy
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check service is alive
+        run: |
+          STATUS=$(ssh jcm@${{ secrets.TARGET_HOST }} "curl -s -o /dev/null -w '%{http_code}' http://localhost:8000/health/alive")
+          echo "Health alive status: $STATUS"
+          [ "$STATUS" = "200" ]
+
+      - name: Check nginx proxies correctly
+        run: |
+          STATUS=$(ssh jcm@${{ secrets.TARGET_HOST }} "curl -s -o /dev/null -w '%{http_code}' http://localhost/tasks")
+          echo "Nginx /tasks status: $STATUS"
+          [ "$STATUS" = "200" ]
+
+      - name: Check nginx blocks health
+        run: |
+          STATUS=$(ssh jcm@${{ secrets.TARGET_HOST }} "curl -s -o /dev/null -w '%{http_code}' http://localhost/health/alive")
+          echo "Nginx /health/alive status: $STATUS"
+          [ "$STATUS" = "404" ]
+
+      - name: Check root endpoint
+        run: |
+          BODY=$(ssh jcm@${{ secrets.TARGET_HOST }} "curl -s http://localhost/")
+          echo "$BODY"
+          echo "$BODY" | grep -q "/tasks"
