@@ -1,0 +1,13 @@
+{
+  "app": {
+    "host": "0.0.0.0",
+    "port": 8000
+  },
+  "db": {
+    "host": "db",
+    "port": 5432,
+    "user": "mywebapp",
+    "password": "mywebapp_secret",
+    "name": "mywebapp"
+  }
+}
