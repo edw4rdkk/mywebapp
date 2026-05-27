@@ -2,7 +2,7 @@ module.exports = [
   {
     files: ["src/**/*.js"],
     rules: {
-      "no-unused-vars": "warn",
+      "no-unused-vars": "error",
       "no-undef": "error",
       "no-console": "off",
       semi: ["error", "always"],
