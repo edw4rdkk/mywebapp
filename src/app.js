@@ -1,4 +1,6 @@
 // PR test - this should pass all checks
+const unusedVariable = "this will fail lint";
+
 const express = require("express");
 const { Pool } = require("pg");
 const fs = require("fs");
