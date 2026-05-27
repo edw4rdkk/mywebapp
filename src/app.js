@@ -202,6 +202,10 @@ app.post("/tasks/:id/done", async (req, res) => {
 const host = config.app.host || "127.0.0.1";
 const port = config.app.port || 8000;
 
-app.listen(port, host, () => {
-  console.log("Task Tracker listening on " + host + ":" + port);
-});
+if (require.main === module) {
+  app.listen(port, host, () => {
+    console.log("Task Tracker listening on " + host + ":" + port);
+  });
+}
+
+module.exports = app;
